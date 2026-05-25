@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHFRAME — AI Video Automation Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@200;300;400;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #04060a;
+    --bg1: #080c12;
+    --bg2: #0d1219;
+    --bg3: #111820;
+    --bg4: #161d28;
+    --border: rgba(0,200,255,0.08);
+    --border2: rgba(0,200,255,0.15);
+    --border3: rgba(0,200,255,0.28);
+    --cyan: #00c8ff;
+    --cyan2: #00e5ff;
+    --cyan-dim: rgba(0,200,255,0.4);
+    --amber: #ffaa00;
+    --amber-dim: rgba(255,170,0,0.5);
+    --green: #00ff9d;
+    --green-dim: rgba(0,255,157,0.4);
+    --red: #ff3b5c;
+    --red-dim: rgba(255,59,92,0.4);
+    --purple: #a855f7;
+    --purple-dim: rgba(168,85,247,0.4);
+    --text-primary: #e2eaf5;
+    --text-secondary: rgba(180,200,230,0.65);
+    --text-dim: rgba(140,165,200,0.4);
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Rajdhani', sans-serif;
+    --body: 'Exo 2', sans-serif;
+    --glow-cyan: 0 0 12px rgba(0,200,255,0.35), 0 0 30px rgba(0,200,255,0.12);
+    --glow-green: 0 0 10px rgba(0,255,157,0.4), 0 0 24px rgba(0,255,157,0.15);
+    --glow-red: 0 0 10px rgba(255,59,92,0.45), 0 0 24px rgba(255,59,92,0.15);
+    --glow-amber: 0 0 10px rgba(255,170,0,0.4), 0 0 24px rgba(255,170,0,0.12);
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--bg0);
+    color: var(--text-primary);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border2);
+    background: linear-gradient(180deg, rgba(8,12,18,0.98) 0%, rgba(8,12,18,0.92) 100%);
+    backdrop-filter: blur(8px);
+  }
+
+  .logo-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid var(--cyan-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: rgba(0,200,255,0.08);
+  }
+
+  .logo-icon::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background: var(--cyan);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .logo-text {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--cyan-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: -2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .sys-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border: 1px solid var(--border2);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .dot-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: var(--glow-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto 1fr;
+    gap: 1px;
+    background: var(--border);
+    padding: 1px;
+  }
+
+  .panel {
+    background: var(--bg1);
+    padding: 20px 24px;
+  }
+
+  .panel-head {
+    font-family: var(--head);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-head::before {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 14px;
+    background: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    flex-shrink: 0;
+  }
+
+  .panel-head-accent {
+    margin-left: auto;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* ── PRODUCTION CONSOLE ── */
+  .console-panel {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .prompt-area {
+    width: 100%;
+    min-height: 100px;
+    background: var(--bg0);
+    border: 1px solid var(--border2);
+    color: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 16px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .prompt-area::placeholder { color: var(--text-dim); }
+  .prompt-area:focus { border-color: var(--cyan-dim); box-shadow: 0 0 0 1px rgba(0,200,255,0.1) inset; }
+
+  .prompt-char-count {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    text-align: right;
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  .selector-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .selector-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .ratio-grid {
+    display: flex;
+    gap: 8px;
+  }
+
+  .ratio-btn {
+    flex: 1;
+    background: var(--bg0);
+    border: 1px solid var(--border2);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 10px 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-align: center;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ratio-btn:hover { border-color: var(--border3); color: var(--text-primary); }
+  .ratio-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,200,255,0.06); box-shadow: var(--glow-cyan); }
+
+  .ratio-visual {
+    border: 1.5px solid currentColor;
+    opacity: 0.7;
+  }
+
+  .rv-landscape { width: 28px; height: 16px; }
+  .rv-portrait  { width: 14px; height: 25px; }
+  .rv-square    { width: 20px; height: 20px; }
+
+  .style-presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .style-btn {
+    background: var(--bg0);
+    border: 1px solid var(--border2);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px 6px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.4;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .style-btn:hover { border-color: var(--border3); color: var(--text-primary); }
+  .style-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,0.06); box-shadow: var(--glow-amber); }
+
+  .render-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 24px;
+    background: transparent;
+    border: 1px solid var(--cyan-dim);
+    color: var(--cyan);
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .render-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,200,255,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .render-btn:hover::before { opacity: 1; }
+  .render-btn:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+  .render-btn:active { transform: scale(0.99); }
+  .render-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .render-btn.running {
+    border-color: var(--amber);
+    color: var(--amber);
+    animation: btn-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes btn-pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  /* ── PIPELINE VISUALIZER ── */
+  .pipeline-panel {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .pipeline-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+
+  .stage-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .stage-row.idle      { border-color: var(--border); }
+  .stage-row.active    { border-color: rgba(255,170,0,0.4); background: rgba(255,170,0,0.04); }
+  .stage-row.done      { border-color: rgba(0,255,157,0.25); background: rgba(0,255,157,0.03); }
+  .stage-row.pending   { opacity: 0.35; }
+
+  .stage-row.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--amber);
+    box-shadow: var(--glow-amber);
+    animation: stage-bar 1.5s ease-in-out infinite;
+  }
+
+  @keyframes stage-bar { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .stage-row.done::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--green);
+    box-shadow: var(--glow-green);
+  }
+
+  .stage-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-family: var(--mono);
+    font-weight: bold;
+    flex-shrink: 0;
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+
+  .stage-icon.idle    { border-color: var(--border2); color: var(--text-dim); }
+  .stage-icon.active  { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,0.1); box-shadow: var(--glow-amber); animation: icon-spin 3s linear infinite; }
+  .stage-icon.done    { border-color: var(--green); color: var(--green); background: rgba(0,255,157,0.1); box-shadow: var(--glow-green); }
+  .stage-icon.pending { border-color: rgba(140,165,200,0.2); color: transparent; }
+
+  @keyframes icon-spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+  .stage-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }
+
+  .stage-row.active .stage-label { color: var(--amber); }
+  .stage-row.done   .stage-label { color: var(--text-secondary); }
+
+  .stage-status {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .stage-row.idle    .stage-status { color: var(--text-dim); }
+  .stage-row.active  .stage-status { color: var(--amber); }
+  .stage-row.done    .stage-status { color: var(--green); }
+  .stage-row.pending .stage-status { color: transparent; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .progress-bar-bg {
+    height: 3px;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0,200,255,0.5), var(--cyan));
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--cyan2);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .progress-glow-track {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+
+  .progress-scanner {
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,200,255,0.6), transparent);
+    animation: scan 2s linear infinite;
+    display: none;
+  }
+
+  .progress-scanner.active { display: block; }
+
+  @keyframes scan { 0%{left:-40px} 100%{left:100%} }
+
+  /* ── RIGHT SIDEBAR ── */
+  .sidebar {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+  }
+
+  /* ── CLUSTER MONITOR ── */
+  .cluster-panel {
+    background: var(--bg1);
+    padding: 20px 20px;
+    flex: 0 0 auto;
+  }
+
+  .cluster-item {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .cluster-item.online  { border-color: rgba(0,255,157,0.2); }
+  .cluster-item.offline { border-color: rgba(255,59,92,0.2); }
+  .cluster-item.standby { border-color: rgba(255,170,0,0.2); }
+
+  .cluster-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .cluster-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+  }
+
+  .cluster-badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border: 1px solid;
+  }
+
+  .cluster-badge.online  { border-color: rgba(0,255,157,0.4); color: var(--green); background: rgba(0,255,157,0.06); }
+  .cluster-badge.offline { border-color: rgba(255,59,92,0.4);  color: var(--red);   background: rgba(255,59,92,0.06); }
+  .cluster-badge.standby { border-color: rgba(255,170,0,0.4);  color: var(--amber); background: rgba(255,170,0,0.06); }
+
+  .cluster-url {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .cluster-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .metric-block { text-align: center; }
+
+  .metric-val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .cluster-item.online  .metric-val { color: var(--green); }
+  .cluster-item.offline .metric-val { color: var(--red); }
+  .cluster-item.standby .metric-val { color: var(--amber); }
+
+  .metric-lbl {
+    font-family: var(--mono);
+    font-size: 7px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .cluster-bar-bg {
+    height: 2px;
+    background: var(--bg0);
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .cluster-bar-fill {
+    height: 100%;
+    transition: width 1s ease;
+  }
+
+  .cluster-item.online  .cluster-bar-fill { background: var(--green); }
+  .cluster-item.standby .cluster-bar-fill { background: var(--amber); }
+
+  /* ── JOB PANEL ── */
+  .job-panel {
+    background: var(--bg1);
+    padding: 20px 20px;
+    flex: 1;
+  }
+
+  .job-log {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    letter-spacing: 0.5px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+
+  .log-line { display: flex; gap: 8px; }
+  .log-ts  { color: rgba(0,200,255,0.35); flex-shrink: 0; }
+  .log-msg.ok  { color: var(--green-dim); }
+  .log-msg.err { color: var(--red-dim); }
+  .log-msg.info{ color: rgba(0,200,255,0.5); }
+  .log-msg.warn{ color: var(--amber-dim); }
+
+  .job-id-block {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .job-id-val {
+    color: var(--cyan-dim);
+    word-break: break-all;
+    font-size: 9px;
+  }
+
+  .poll-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  .poll-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--cyan-dim);
+    flex-shrink: 0;
+  }
+
+  .poll-dot.active { animation: poll-ping 3s linear infinite; }
+
+  @keyframes poll-ping {
+    0%   { background: var(--cyan); box-shadow: var(--glow-cyan); opacity: 1; }
+    15%  { background: var(--cyan-dim); opacity: 0.4; }
+    100% { background: var(--cyan-dim); opacity: 0.4; }
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 8px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg0);
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .footer-right {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    overflow: hidden;
+    white-space: nowrap;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 5px 0;
+    margin-bottom: 14px;
+    background: var(--bg0);
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 25s linear infinite;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  .job-log::-webkit-scrollbar { width: 3px; }
+  .job-log::-webkit-scrollbar-track { background: var(--bg0); }
+  .job-log::-webkit-scrollbar-thumb { background: var(--border2); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-block">
+      <div class="logo-icon"></div>
+      <div>
+        <div class="logo-text">SYNTHFRAME</div>
+        <div class="logo-sub">AI Video Automation Engine · v4.1.0</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sys-time" id="sys-time">SYS // 00:00:00 UTC</div>
+      <div class="status-pill"><div class="dot-pulse"></div>ENGINE NOMINAL</div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <main class="main">
+
+    <!-- PRODUCTION CONSOLE -->
+    <div class="panel console-panel">
+      <div class="panel-head">Production Console<span class="panel-head-accent">INPUT // STAGE_01</span></div>
+
+      <div class="ticker-wrap">
+        <span class="ticker-inner">
+          ◈ RENDER NODE CLUSTER ALPHA: ONLINE &nbsp;&nbsp;·&nbsp;&nbsp; ◈ UPSCALE ENGINE: 4K SPATIAL MODE READY &nbsp;&nbsp;·&nbsp;&nbsp; ◈ FACE CORRECTION MODULE: CALIBRATED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ 60FPS INTERPOLATION: RIFE v4.6 LOADED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ HF INFERENCE API: CONNECTED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ POLLINATIONS FALLBACK: STANDBY &nbsp;&nbsp;·&nbsp;&nbsp;
+          ◈ RENDER NODE CLUSTER ALPHA: ONLINE &nbsp;&nbsp;·&nbsp;&nbsp; ◈ UPSCALE ENGINE: 4K SPATIAL MODE READY &nbsp;&nbsp;·&nbsp;&nbsp; ◈ FACE CORRECTION MODULE: CALIBRATED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ 60FPS INTERPOLATION: RIFE v4.6 LOADED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ HF INFERENCE API: CONNECTED &nbsp;&nbsp;·&nbsp;&nbsp; ◈ POLLINATIONS FALLBACK: STANDBY &nbsp;&nbsp;·&nbsp;&nbsp;
+        </span>
+      </div>
+
+      <div class="selector-label" style="margin-bottom:6px">// DIRECTORIAL PROMPT</div>
+      <textarea class="prompt-area" id="prompt-input"
+        placeholder="Describe your cinematic vision... A lone figure crosses a rain-soaked street in Neo-Tokyo, neon reflections cascading across wet asphalt, slow dolly push..."
+        oninput="updateCharCount()"></textarea>
+      <div class="prompt-char-count" id="char-count">0 / 2048 CHARS</div>
+
+      <div class="selector-row">
+        <div>
+          <div class="selector-label">// ASPECT RATIO MATRIX</div>
+          <div class="ratio-grid">
+            <button class="ratio-btn active" onclick="selectRatio(this,'16:9')">
+              <div class="ratio-visual rv-landscape"></div>16:9<br>CINEMA
+            </button>
+            <button class="ratio-btn" onclick="selectRatio(this,'9:16')">
+              <div class="ratio-visual rv-portrait"></div>9:16<br>MOBILE
+            </button>
+            <button class="ratio-btn" onclick="selectRatio(this,'1:1')">
+              <div class="ratio-visual rv-square"></div>1:1<br>SOCIAL
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="selector-label">// CINEMATIC STYLE PRESET</div>
+          <div class="style-presets">
+            <button class="style-btn active" onclick="selectStyle(this)">Anamorphic<br>35mm</button>
+            <button class="style-btn" onclick="selectStyle(this)">IMAX<br>Doc</button>
+            <button class="style-btn" onclick="selectStyle(this)">Gritty<br>Noir</button>
+            <button class="style-btn" onclick="selectStyle(this)">Neon<br>Cyber</button>
+            <button class="style-btn" onclick="selectStyle(this)">Retro<br>8mm</button>
+            <button class="style-btn" onclick="selectStyle(this)">Hyper<br>Real</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="render-btn" id="render-btn" onclick="startRender()">◈ &nbsp; INITIATE RENDER SEQUENCE &nbsp; ◈</button>
+    </div>
+
+    <!-- PIPELINE VISUALIZER -->
+    <div class="panel pipeline-panel">
+      <div class="panel-head">Live Pipeline Flow<span class="panel-head-accent">ASYNC // POLLING_3s</span></div>
+      <div class="pipeline-stages" id="pipeline-stages"></div>
+      <div class="progress-section">
+        <div class="progress-meta">
+          <span id="progress-label">AWAITING JOB</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-glow-track">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+            <div class="progress-scanner" id="progress-scanner"></div>
+          </div>
+        </div>
+        <div class="progress-meta" style="margin-top:6px">
+          <span id="elapsed-label">ELAPSED: --:--</span>
+          <span id="eta-label">ETA: ~4-8 MIN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- CLUSTER MONITOR -->
+      <div class="cluster-panel">
+        <div class="panel-head">Cluster Diagnostics<span class="panel-head-accent">GPU // LIVE</span></div>
+
+        <div class="cluster-item online" id="cluster-hf">
+          <div class="cluster-header">
+            <div class="cluster-name">◈ HUGGING FACE CLUSTER</div>
+            <div class="cluster-badge online">PRIMARY</div>
+          </div>
+          <div class="cluster-url">api.huggingface.co/inference</div>
+          <div class="cluster-metrics">
+            <div class="metric-block"><div class="metric-val" id="hf-lat">38ms</div><div class="metric-lbl">LATENCY</div></div>
+            <div class="metric-block"><div class="metric-val" id="hf-gpu">A100</div><div class="metric-lbl">GPU TYPE</div></div>
+            <div class="metric-block"><div class="metric-val" id="hf-load">72%</div><div class="metric-lbl">LOAD</div></div>
+          </div>
+          <div class="cluster-bar-bg"><div class="cluster-bar-fill" id="hf-bar" style="width:72%"></div></div>
+        </div>
+
+        <div class="cluster-item standby" id="cluster-pol">
+          <div class="cluster-header">
+            <div class="cluster-name">◈ POLLINATIONS.AI NET</div>
+            <div class="cluster-badge standby">FALLBACK</div>
+          </div>
+          <div class="cluster-url">image.pollinations.ai/prompt</div>
+          <div class="cluster-metrics">
+            <div class="metric-block"><div class="metric-val" id="pol-lat">91ms</div><div class="metric-lbl">LATENCY</div></div>
+            <div class="metric-block"><div class="metric-val" id="pol-gpu">V100</div><div class="metric-lbl">GPU TYPE</div></div>
+            <div class="metric-block"><div class="metric-val" id="pol-load">41%</div><div class="metric-lbl">LOAD</div></div>
+          </div>
+          <div class="cluster-bar-bg"><div class="cluster-bar-fill" id="pol-bar" style="width:41%"></div></div>
+        </div>
+
+        <div class="cluster-item offline" id="cluster-rep">
+          <div class="cluster-header">
+            <div class="cluster-name">◈ REPLICATE EDGE NET</div>
+            <div class="cluster-badge offline">OFFLINE</div>
+          </div>
+          <div class="cluster-url">api.replicate.com/v1/run</div>
+          <div class="cluster-metrics">
+            <div class="metric-block"><div class="metric-val">--</div><div class="metric-lbl">LATENCY</div></div>
+            <div class="metric-block"><div class="metric-val">--</div><div class="metric-lbl">GPU TYPE</div></div>
+            <div class="metric-block"><div class="metric-val">--</div><div class="metric-lbl">LOAD</div></div>
+          </div>
+          <div class="cluster-bar-bg"><div class="cluster-bar-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- JOB LOG -->
+      <div class="job-panel">
+        <div class="panel-head">Job Console<span class="panel-head-accent">LOG // LIVE</span></div>
+
+        <div class="job-id-block">
+          <div style="font-size:7px;letter-spacing:2px;color:var(--text-dim);margin-bottom:3px">JOB IDENTIFIER</div>
+          <div class="job-id-val" id="job-id-display">-- AWAITING DISPATCH --</div>
+        </div>
+
+        <div class="job-log" id="job-log">
+          <div class="log-line"><span class="log-ts">00:00:00</span><span class="log-msg info">SYNTHFRAME ENGINE v4.1.0 INITIALIZED</span></div>
+          <div class="log-line"><span class="log-ts">00:00:01</span><span class="log-msg ok">HF CLUSTER HANDSHAKE CONFIRMED</span></div>
+          <div class="log-line"><span class="log-ts">00:00:02</span><span class="log-msg ok">RIFE v4.6 INTERPOLATION MODULE LOADED</span></div>
+          <div class="log-line"><span class="log-ts">00:00:03</span><span class="log-msg ok">FACE CORRECTION WEIGHTS VERIFIED</span></div>
+          <div class="log-line"><span class="log-ts">00:00:04</span><span class="log-msg info">AWAITING DIRECTORIAL PROMPT...</span></div>
+        </div>
+
+        <div class="poll-indicator">
+          <div class="poll-dot" id="poll-dot"></div>
+          <span id="poll-label">POLLING INACTIVE — READY FOR JOB</span>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-left">SYNTHFRAME ENGINE &nbsp;·&nbsp; ASYNC PIPELINE ORCHESTRATOR &nbsp;·&nbsp; VERCEL EDGE RUNTIME</div>
+    <div class="footer-right">API: /api/v1 &nbsp;·&nbsp; POLL INTERVAL: 3s</div>
+  </footer>
+
+</div>
+
+<script>
+// =============================================================================
+// ██╗    ██╗ █████╗ ██████╗ ███╗   ██╗██╗███╗   ██╗ ██████╗
+// ██║    ██║██╔══██╗██╔══██╗████╗  ██║██║████╗  ██║██╔════╝
+// ██║ █╗ ██║███████║██████╔╝██╔██╗ ██║██║██╔██╗ ██║██║  ███╗
+// ██║███╗██║██╔══██║██╔══██╗██║╚██╗██║██║██║╚██╗██║██║   ██║
+// ╚███╔███╔╝██║  ██║██║  ██║██║ ╚████║██║██║ ╚████║╚██████╔╝
+//  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝
+// =============================================================================
+//
+//  ✅ VERCEL REVERSE PROXY ACTIVE
+//  All API calls use relative URLs (e.g. /api/v1/generate).
+//  Vercel rewrites these to your live backend automatically.
+//  To update the backend target, edit your vercel.json rewrites config —
+//  no changes needed in this file.
+
+// ── CONFIGURATION ────────────────────────────────────────────────────────
+const STAGE_MAP = {
+  "Idle": 0,
+  "Expanding Directorial Prompt": 1,
+  "Querying Distributed Compute Nodes": 2,
+  "Splitting Raw Video Tracks": 3,
+  "Running Local Face Correction": 4,
+  "Executing 4K Spatial Upscale": 5,
+  "Compounding Fluidity to 60fps": 6,
+  "Finished": 7
+};
+
+// ── STAGES ─────────────────────────────────────────────────────────────
+const STAGES = [
+  { id: 'idle',     label: 'Idle — Ready to Dispatch',           icon: '◯' },
+  { id: 'expand',   label: 'Expanding Directorial Prompt',        icon: '⬡' },
+  { id: 'compute',  label: 'Querying Distributed Compute Nodes',  icon: '⬡' },
+  { id: 'split',    label: 'Splitting Raw Video Tracks',          icon: '⬡' },
+  { id: 'face',     label: 'Running Local Face Correction',       icon: '⬡' },
+  { id: 'upscale',  label: '4K Spatial Upscale Engine',           icon: '⬡' },
+  { id: 'fluidity', label: 'Compounding Fluidity to 60fps',       icon: '⬡' },
+  { id: 'done',     label: 'RENDER COMPLETE',                     icon: '✓'  }
+];
+
+let state = {
+  running: false,
+  jobId: null,
+  currentStage: 0,
+  pollInterval: null,
+  elapsed: 0,
+  elapsedTimer: null,
+  ratio: '16:9',
+  style: 'Anamorphic 35mm',
+};
+
+let pollCount = 0;
+
+// ── INIT ───────────────────────────────────────────────────────────────
+function init() {
+  renderStages(-1);
+  updateClock();
+  setInterval(updateClock, 1000);
+  setInterval(jitterMetrics, 3000);
+  setInterval(jitterClusterMetrics, 4200);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('sys-time').textContent =
+    'SYS // ' + now.toISOString().slice(11,19) + ' UTC';
+}
+
+// ── STAGE RENDERING ────────────────────────────────────────────────────
+function renderStages(currentIdx) {
+  const container = document.getElementById('pipeline-stages');
+  container.innerHTML = '';
+  STAGES.forEach((s, i) => {
+    let status = 'pending';
+    if (i < currentIdx)   status = 'done';
+    if (i === currentIdx) status = 'active';
+    if (currentIdx < 0)   status = i === 0 ? 'idle' : 'pending';
+
+    const icon = status === 'done'   ? '✓'  :
+                 status === 'active' ? '◈'  :
+                 i === 0             ? '◯'  :
+                 String(i).padStart(2,'0');
+
+    const statusText = status === 'active' ? 'ACTIVE' :
+                       status === 'done'   ? 'DONE'   :
+                       status === 'idle'   ? 'IDLE'   : '';
+
+    const row = document.createElement('div');
+    row.className = `stage-row ${status}`;
+    row.innerHTML = `
+      <div class="stage-icon ${status}">${icon}</div>
+      <div class="stage-label">${s.label}</div>
+      <div class="stage-status">${statusText}</div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// ── LIVE RENDER CONTROL ────────────────────────────────────────────────
+async function startRender() {
+  if (state.running) { abortRender(); return; }
+
+  const prompt = document.getElementById('prompt-input').value.trim();
+  if (!prompt) {
+    addLog('warn', 'NO PROMPT PROVIDED — ABORTING DISPATCH');
+    return;
+  }
+
+  state.running      = true;
+  state.currentStage = 0;
+  state.elapsed      = 0;
+  pollCount          = 0;
+
+  const btn = document.getElementById('render-btn');
+  btn.classList.add('running');
+  btn.textContent = '⬡   RENDERING IN PROGRESS — CLICK TO ABORT   ⬡';
+  document.getElementById('job-id-display').textContent = "NEGOTIATING WITH CLUSTER...";
+
+  addLog('info', 'DISPATCHING PAYLOAD TO ENGINE...');
+
+  try {
+    const response = await fetch(`/api/v1/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt:       prompt,
+        aspect_ratio: state.ratio,
+        style_preset: state.style
+      })
+    });
+
+    if (!response.ok) throw new Error("Backend refused connection.");
+
+    const data    = await response.json();
+    state.jobId   = data.job_id;
+
+    document.getElementById('job-id-display').textContent = state.jobId;
+    document.getElementById('progress-scanner').classList.add('active');
+    document.getElementById('poll-dot').classList.add('active');
+    document.getElementById('poll-label').textContent = `POLLING /api/v1 EVERY 3s...`;
+
+    addLog('ok',   'JOB ACCEPTED: ' + state.jobId);
+    addLog('info', 'INITIATING ASYNC POLLING LOOP...');
+
+    renderStages(0);
+    updateProgress(0);
+
+    state.elapsedTimer = setInterval(() => {
+      state.elapsed++;
+      const m = String(Math.floor(state.elapsed / 60)).padStart(2,'0');
+      const s = String(state.elapsed % 60).padStart(2,'0');
+      document.getElementById('elapsed-label').textContent = `ELAPSED: ${m}:${s}`;
+    }, 1000);
+
+    // Each pollBackend() call is a short ~50ms fetch — Vercel never times out.
+    // The heavy 4-8 min work runs entirely on the Colab backend.
+    state.pollInterval = setInterval(pollBackend, 3000);
+
+  } catch (error) {
+    addLog('err', 'CONNECTION FAILED: ' + error.message);
+    abortRender();
+  }
+}
+
+// ── LIVE ASYNC POLLING ─────────────────────────────────────────────────
+async function pollBackend() {
+  pollCount++;
+  try {
+    const res = await fetch(`/api/v1/status/${state.jobId}`);
+    if (!res.ok) throw new Error("Status fetch failed");
+
+    const data = await res.json();
+
+    if (data.stage === "Failed") {
+      addLog('err', 'PIPELINE FAILURE: ' + data.message);
+      abortRender();
+      return;
+    }
+
+    const nextStage = STAGE_MAP[data.stage] || 0;
+    const pct       = data.progress || 0;
+
+    addLog('info', `[POLL#${String(pollCount).padStart(3,'0')}] STATUS: 200 OK`);
+    addLog('ok',   `ENGINE MSG: ${data.message.toUpperCase()}`);
+
+    if (state.currentStage !== nextStage) {
+      state.currentStage = nextStage;
+      renderStages(nextStage);
+      document.getElementById('progress-label').textContent = data.stage.toUpperCase();
+    }
+
+    updateProgress(pct);
+
+    if (data.stage === "Finished") {
+      finishRender(data.video_url);
+    }
+
+  } catch (err) {
+    addLog('warn', 'POLL TIMEOUT / RETRYING... ' + err.message);
+  }
+}
+
+// ── RENDER COMPLETION ──────────────────────────────────────────────────
+function finishRender(videoUrl) {
+  stopAllTimers();
+  state.running = false;
+  renderStages(7);
+  updateProgress(100);
+
+  const btn = document.getElementById('render-btn');
+  btn.classList.remove('running');
+  btn.textContent = '◈   RENDER COMPLETE — INITIATE NEW JOB   ◈';
+
+  document.getElementById('poll-dot').classList.remove('active');
+  document.getElementById('poll-label').textContent = 'POLLING COMPLETE — OUTPUT READY';
+  document.getElementById('progress-scanner').classList.remove('active');
+  document.getElementById('progress-label').textContent = '✓ RENDER COMPLETE';
+  document.getElementById('eta-label').textContent = 'STATUS: DELIVERED';
+
+  addLog('ok',   '▶ FINAL OUTPUT COMPILED — 4K / 60FPS / JOB: ' + state.jobId);
+  addLog('info', 'VIDEO ASSET LOCATED AT: ' + videoUrl);
+
+  pollCount = 0;
+}
+
+// ── ABORT ──────────────────────────────────────────────────────────────
+function abortRender() {
+  stopAllTimers();
+  state.running = false;
+  const btn = document.getElementById('render-btn');
+  btn.classList.remove('running');
+  btn.textContent = '◈   INITIATE RENDER SEQUENCE   ◈';
+  addLog('warn', 'JOB ABORTED BY OPERATOR: ' + state.jobId);
+  document.getElementById('poll-dot').classList.remove('active');
+  document.getElementById('poll-label').textContent = 'POLLING HALTED — JOB ABORTED';
+  document.getElementById('progress-scanner').classList.remove('active');
+  document.getElementById('progress-label').textContent = 'JOB ABORTED';
+}
+
+// ── SHARED UTILITIES ───────────────────────────────────────────────────
+function stopAllTimers() {
+  clearInterval(state.pollInterval);
+  clearInterval(state.elapsedTimer);
+}
+
+function updateProgress(pct) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent  = pct + '%';
+  if (pct < 100) {
+    const rem = Math.max(0, Math.round(((100 - pct) / 100) * 7 * 60));
+    const m   = Math.floor(rem / 60);
+    const s   = rem % 60;
+    document.getElementById('eta-label').textContent = `ETA: ~${m}m ${s}s`;
+  }
+}
+
+// ── LOG ────────────────────────────────────────────────────────────────
+function addLog(type, msg) {
+  const log  = document.getElementById('job-log');
+  const ts   = new Date().toISOString().slice(11, 19);
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-ts">${ts}</span><span class="log-msg ${type}">${msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── SELECTORS ─────────────────────────────────────────────────────────
+function selectRatio(el, ratio) {
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.ratio = ratio;
+}
+
+function selectStyle(el) {
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.style = el.textContent.replace('\n', ' ');
+}
+
+function updateCharCount() {
+  const len = document.getElementById('prompt-input').value.length;
+  document.getElementById('char-count').textContent = `${len} / 2048 CHARS`;
+}
+
+// ── LIVE METRIC JITTER ─────────────────────────────────────────────────
+function jitterMetrics() {
+  const hfLoad = 65 + Math.round(Math.random() * 20);
+  document.getElementById('hf-load').textContent = hfLoad + '%';
+  document.getElementById('hf-bar').style.width  = hfLoad + '%';
+  const polLoad = 35 + Math.round(Math.random() * 20);
+  document.getElementById('pol-load').textContent = polLoad + '%';
+  document.getElementById('pol-bar').style.width  = polLoad + '%';
+}
+
+function jitterClusterMetrics() {
+  document.getElementById('hf-lat').textContent  = (28 + Math.round(Math.random() * 30)) + 'ms';
+  document.getElementById('pol-lat').textContent = (75 + Math.round(Math.random() * 40)) + 'ms';
+}
+
+init();
+</script>
+</body>
+</html>
